@@ -2,11 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -68,13 +70,28 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(reqBody, &newUser)
 
-	fmt.Println(newUser)
+	dec, ero := base64.StdEncoding.DecodeString(newUser.Foto)
+	if ero != nil {
+		panic(ero)
+	}
+	f, err := os.Create("usuarios/" + newUser.Username)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		panic(err)
+	}
+	if err := f.Sync(); err != nil {
+		panic(err)
+	}
 
 	//currentTime.Format("02/01/2006")
 	//rows, err := db.Query("select to_char(sysdate, 'HH24:MI:SS') from dual")
 	//rows, err := db.Query("insert into usuario(username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) values ()")
 	currentTime := time.Now()
-	rows, err := db.Query("INSERT INTO usuario (username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) VALUES ('" + newUser.Username + "','" + newUser.Nombre + "','" + newUser.Apellido + "',TO_DATE('" + newUser.Fecha_nacimiento + "','dd/mm/yyyy'),TO_DATE('" + currentTime.Format("02/01/2006") + "','dd/mm/yyyy'),'" + newUser.Correo + "','" + newUser.Foto + "','" + newUser.Password + "')")
+	rows, err := db.Query("INSERT INTO usuario (username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) VALUES ('" + newUser.Username + "','" + newUser.Nombre + "','" + newUser.Apellido + "',TO_DATE('" + newUser.Fecha_nacimiento + "','dd/mm/yyyy'),TO_DATE('" + currentTime.Format("02/01/2006") + "','dd/mm/yyyy'),'" + newUser.Correo + "','" + "usuarios/" + newUser.Username + "','" + newUser.Password + "')")
 	if err != nil {
 		fmt.Println("Error running query")
 		//fmt.Println(err)
@@ -151,8 +168,6 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(reqBody, &newUser)
 
-	fmt.Println(newUser.Username)
-	fmt.Println(newUser.Password)
 	var resultado simpleID
 	//currentTime.Format("02/01/2006")
 	err = db.QueryRow("select id_usuario from usuario where username = '" + newUser.Username + "' and contrasena = '" + newUser.Password + "'").Scan(&resultado.ID)
@@ -166,7 +181,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Println(resultado.ID)
+
 	json.NewEncoder(w).Encode(resultado)
 
 }
@@ -239,7 +254,7 @@ func main() {
 
 	router.HandleFunc("/creaUser", createUser).Methods("POST")
 	router.HandleFunc("/login", loginUser).Methods("POST")
-	http.HandleFunc("/upload", uploadFile)
+	router.HandleFunc("/upload", uploadFile).Methods("POST")
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)
 	log.Fatal(http.ListenAndServe(":3080", handler))
@@ -254,7 +269,9 @@ func conection() {
 puntaje
 recompensa
 registo_membresia
-membresia
+membresia.
+prediccion
+usuario
 
 
 

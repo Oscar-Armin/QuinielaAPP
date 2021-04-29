@@ -12,7 +12,7 @@ export async function loginUsuario(usuario, password) {
       },
       body: JSON.stringify({
         username: usuario,
-        password: password,
+        password: md5(password),
       }),
     });
   }
@@ -42,7 +42,7 @@ export async function loginUsuario(usuario, password) {
     
     let foto_base64 = await pFileReader(file);
     foto_base64 = foto_base64.split(",")[1];
-  
+    
     return fetch(url_api + "/creaUser", {
       method: "POST",
       headers: {
@@ -56,7 +56,7 @@ export async function loginUsuario(usuario, password) {
         nacimiento: nacimiento,
         
         correo: correo,
-        foto: "foto_base64",
+        foto: foto_base64,
         password: md5(password),
       }),
     });
@@ -71,3 +71,14 @@ export async function loginUsuario(usuario, password) {
       fr.readAsDataURL(file);
     });
   }
+
+
+  /*
+    puntaje
+    recompensa
+    registro_membresia
+    membresia
+    prediccion
+    usuario
+
+  */

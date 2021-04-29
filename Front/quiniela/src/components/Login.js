@@ -59,13 +59,17 @@ const Login = ({titulo})=>{
                       id_usuario: respuesta.ID
                     })
                   );
-                    
+                    console.log(respuesta.ID)
                   Toast.fire({
                     icon: "success",
                     title: `¡Bienvenid@ ${usuarioRef.current.value}!`,
                   });
             
-
+                  if(respuesta.ID === 2){
+                    console.log("Hola Admin")
+                  }else{
+                    console.log("Haga apuestas")
+                  }
 
             
           } else if(rawResponse.status === 500){

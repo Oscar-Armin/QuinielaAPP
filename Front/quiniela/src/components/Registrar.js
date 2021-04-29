@@ -49,12 +49,55 @@ const  Registrar =()=> {
           icon: "error",
           confirmButtonText: "Ok",
         });
+        //window.location.reload(false);
         return;
       }
-      //verifico edad
-      
 
-  
+      
+      
+      
+      if ( !password_validate(passwordRef.current.value)) {
+        Swal.fire({
+          title: "Error",
+          text: "contraseña invalida*",
+          icon: "error",
+          confirmButtonText: "Ok",
+        });
+        //window.location.reload(false);
+        
+        return;
+      } 
+
+      //verifico correo
+      var emailRegex = /^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i;
+      if (!emailRegex.test(correoRef.current.value)) {
+        Swal.fire({
+          title: "Error",
+          text: "Correo invalido",
+          icon: "error",
+          confirmButtonText: "Ok",
+        });
+        //window.location.reload(false);
+        return;
+      } 
+
+
+      //verifico edad
+      //var fechaEnMiliseg = Date.now();
+      var age = calcularEdad(startDate);
+      //console.log(age)
+      if (age < 18){
+        Swal.fire({
+          title: "Error",
+          text: "No se pueden registrar menores de edad",
+          icon: "error",
+          confirmButtonText: "Ok",
+        });
+        //window.location.reload(false);
+        return;
+      }
+
+      
       try {
           var fecha = startDate.getUTCDate() + "/"+(startDate.getUTCMonth() + 1) +"/"+ startDate.getUTCFullYear()
           //console.log(fecha)
@@ -129,7 +172,7 @@ const  Registrar =()=> {
                         Usuario:
                       </label>
                       <p/>
-                      <right>
+                      
                       <input align ="right"
                         type="text"
                         ref={usuarioRef}
@@ -137,7 +180,7 @@ const  Registrar =()=> {
                         placeholder="Usuario"
                         required
                       />
-                      </right>
+                      
                     </div>
   
                     <div className="relative w-full mb-3">
@@ -220,6 +263,7 @@ const  Registrar =()=> {
                           </span>
                           <input
                             type="file"
+                            name="myFile" 
                             className="hidden"
                             ref={fotoRef}
                             onChange={(e) => setSelectedFiles(e.target.files)}
@@ -280,6 +324,23 @@ const  Registrar =()=> {
         <Footer/>
       </>
     )
+}
+
+function calcularEdad(fecha) {
+  var hoy = new Date();
+  var cumpleanos = new Date(fecha);
+  var edad = hoy.getFullYear() - cumpleanos.getFullYear();
+  var m = hoy.getMonth() - cumpleanos.getMonth();
+
+  if (m < 0 || (m === 0 && hoy.getDate() < cumpleanos.getDate())) {
+      edad--;
+  }
+
+  return edad;
+}
+
+function password_validate(p) {
+  return /[A-Z]/.test(p)&& /[a-z]/.test(p) && /[0-9]/.test(p) && /^[A-Za-z0-9]{8,20}$/.test(p) ;
 }
 
 export default Registrar;
