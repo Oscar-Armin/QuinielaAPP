@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import Footer from './Footer'
 import Navbar from './Navbar'
 import { Link } from "react-router-dom";
@@ -18,8 +18,7 @@ const Login = ({titulo})=>{
     const usuarioRef = useRef();
     const passwordRef = useRef();
   
-    const [loading, setLoading] = useState(false);
-    console.log(loading)
+  
 
     const Toast = Swal.mixin({
         toast: true,
@@ -37,7 +36,7 @@ const Login = ({titulo})=>{
       async function handleSubmit(e) {
         e.preventDefault();
     
-        setLoading(true);
+        //setLoading(true);
     
         try {
           const rawResponse = await loginUsuario(
@@ -59,7 +58,7 @@ const Login = ({titulo})=>{
                       id_usuario: respuesta.ID
                     })
                   );
-                    console.log(respuesta.ID)
+                    //console.log(respuesta.ID)
                   Toast.fire({
                     icon: "success",
                     title: `¡Bienvenid@ ${usuarioRef.current.value}!`,
@@ -67,8 +66,10 @@ const Login = ({titulo})=>{
             
                   if(respuesta.ID === 2){
                     console.log("Hola Admin")
+                    history.push('/admin')
                   }else{
                     console.log("Haga apuestas")
+                    history.push('/usuario')
                   }
 
             
@@ -91,7 +92,7 @@ const Login = ({titulo})=>{
           });
         }
     
-        setLoading(false);
+        //setLoading(false);
       }
     
     

@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 function Navbar_user() {
     let history = useHistory();
     const redirect = () => {
-
+        localStorage.clear();
         history.push('/home')
       }
     
@@ -26,7 +26,7 @@ function Navbar_user() {
                 </ul>*/}
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                        <a className="nav-link active" aria-current="page" href="/home">Perfil</a>
+                        <a className="nav-link active" aria-current="page" href="/perfil">Perfil</a>
                     </li>
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -51,7 +51,7 @@ function Navbar_user() {
                     
                     <form className="d-flex" align="right" id="flex-end">
                     
-                        <button class="btn btn-danger" type="submit" align="right"  onClick={redirect}>Log out </button>
+                        <button className="btn btn-danger" type="submit" align="right"  onClick={redirect}>Log out </button>
                     </form>
                     
         </div>

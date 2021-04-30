@@ -17,6 +17,21 @@ export async function loginUsuario(usuario, password) {
     });
   }
   
+export async function consultUser(id) {
+  return fetch(url_api + "/consultarUser", {
+    
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ID: id
+      
+    }),
+  });
+}
+
 /*
 	Username         string `json:"username"`
 	Nombre           string `json:"nombre"`
@@ -62,6 +77,43 @@ export async function loginUsuario(usuario, password) {
     });
   };
 
+  export var actualizarUsuario = async function (
+    id,
+    usuario,
+    nombre,
+    apellido,
+    
+    correo,
+    fotografias,
+    password,
+    
+    
+  ) {
+    let file = fotografias.item(0);
+    
+    let foto_base64 = await pFileReader(file);
+    foto_base64 = foto_base64.split(",")[1];
+    
+    return fetch(url_api + "/actualizarUser", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: usuario,
+        nombre: nombre,
+        apellido:apellido,
+        
+        
+        correo: correo,
+        foto: foto_base64,
+        password: password,
+      }),
+    });
+  };
+
+
   function pFileReader(file) {
     return new Promise((resolve, reject) => {
       var fr = new FileReader();
@@ -71,6 +123,8 @@ export async function loginUsuario(usuario, password) {
       fr.readAsDataURL(file);
     });
   }
+
+
 
 
   /*

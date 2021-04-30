@@ -55,6 +55,16 @@ type allUser struct {
 	Password         string `json:"password"`
 }
 
+type actualizar struct {
+	ID_user  int    `json:"id_usuario"`
+	Username string `json:"username"`
+	Nombre   string `json:"nombre"`
+	Apellido string `json:"apellido"`
+	Correo   string `json:"correo"`
+	Foto     string `json:"foto"`
+	Password string `json:"password"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +124,59 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	var newUser actualizar
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	dec, ero := base64.StdEncoding.DecodeString(newUser.Foto)
+	if ero != nil {
+		panic(ero)
+	}
+	f, err := os.Create("usuarios/" + newUser.Username)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		panic(err)
+	}
+	if err := f.Sync(); err != nil {
+		panic(err)
+	}
+
+	//currentTime.Format("02/01/2006")
+	//rows, err := db.Query("select to_char(sysdate, 'HH24:MI:SS') from dual")
+	//rows, err := db.Query("insert into usuario(username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) values ()")
+
+	rows, err := db.Query("update usuario set username='" + newUser.Username + "', nombre=' " + newUser.Nombre + "' , apellido=' " + newUser.Apellido + "', correo=' " + newUser.Correo + "', foto_perfil='" + newUser.Foto + " ', contrasena=' " + newUser.Password + "' where id_usuario= " + strconv.Itoa(newUser.ID_user) + ")")
+	if err != nil {
+		fmt.Println("Error running query")
+		//fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	/*	for rows.Next() {
+
+		var nombre string
+
+		rows.Scan(&nombre)
+		fmt.Println(nombre)
+	}*/
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+
+}
+
 func consultUser(w http.ResponseWriter, r *http.Request) {
 	var newUser simpleID
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -139,16 +202,45 @@ func consultUser(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(reflect.TypeOf(rows))
 	//var resultado usuario
 	for rows.Next() {
-		fmt.Println("info")
 
-		rows.Scan(&resultado.ID_user, &resultado.Nombre, &resultado.Username, &resultado.Apellido, &resultado.Fecha_nacimiento, &resultado.Fecha_registro, &resultado.Correo, &resultado.Foto, &resultado.Password)
+		rows.Scan(&resultado.ID_user, &resultado.Username, &resultado.Nombre, &resultado.Apellido, &resultado.Fecha_nacimiento, &resultado.Fecha_registro, &resultado.Correo, &resultado.Foto, &resultado.Password)
 
 	}
 
+	/**/ //convierto imagen a base64
+	bytes, err := ioutil.ReadFile(resultado.Foto)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var base64Encoding string
+
+	// Determine the content type of the image file
+	mimeType := http.DetectContentType(bytes)
+
+	// Prepend the appropriate URI scheme header depending
+	// on the MIME type
+	switch mimeType {
+	case "image/jpeg":
+		base64Encoding += "data:image/jpeg;base64,"
+	case "image/png":
+		base64Encoding += "data:image/png;base64,"
+	}
+
+	// Append the base64 encoded output
+	base64Encoding += toBase64(bytes)
+
+	// Print the full base64 representation of the image
+	//fmt.Println(base64Encoding)
+	resultado.Foto = base64Encoding
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(resultado)
 
+}
+
+func toBase64(b []byte) string {
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
@@ -244,7 +336,7 @@ func main() {
 	var err error
 	db, err = sql.Open("godror", "ADMIN/1234@172.17.0.2:1521/ORCL18")
 	if err != nil {
-		fmt.Println("adas")
+
 		fmt.Println(err)
 		return
 	}
@@ -254,7 +346,10 @@ func main() {
 
 	router.HandleFunc("/creaUser", createUser).Methods("POST")
 	router.HandleFunc("/login", loginUser).Methods("POST")
-	router.HandleFunc("/upload", uploadFile).Methods("POST")
+	//router.HandleFunc("/upload", uploadFile).Methods("POST")
+	router.HandleFunc("/consultarUser", consultUser).Methods("POST")
+	router.HandleFunc("/actualizarUser", updateUser).Methods("POST")
+
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)
 	log.Fatal(http.ListenAndServe(":3080", handler))
