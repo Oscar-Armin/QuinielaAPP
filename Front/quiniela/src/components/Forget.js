@@ -1,22 +1,22 @@
 import React, { useRef } from "react";
 import Footer from './Footer'
 import Navbar from './Navbar'
-import { Link } from "react-router-dom";
+
 import Swal from "sweetalert2";
-import { useHistory } from 'react-router-dom';
-import { loginUsuario } from "../api/api-user";
+//import { useHistory } from 'react-router-dom';
+import { forgetUsuario } from "../api/api-user";
 
 
-const Login = ({titulo})=>{
+const Forget = ()=>{
 
-    let history = useHistory();
-    const redirect = () => {
+    //let history = useHistory();
+    /*const redirect = () => {
 
         history.push('/registrar')
-      }
+      }*/
     
     const usuarioRef = useRef();
-    const passwordRef = useRef();
+    
   
   
 
@@ -39,9 +39,9 @@ const Login = ({titulo})=>{
         //setLoading(true);
     
         try {
-          const rawResponse = await loginUsuario(
-            usuarioRef.current.value,
-            passwordRef.current.value
+          const rawResponse = await forgetUsuario(
+            usuarioRef.current.value
+            
           );
     
           
@@ -50,33 +50,19 @@ const Login = ({titulo})=>{
           
           if (rawResponse.status === 201) {
             const respuesta = await rawResponse.json();
-                localStorage.setItem(
-                    "usuarioActual",
-                    JSON.stringify({
-                      usuario: usuarioRef.current.value,
-                      
-                      id_usuario: respuesta.ID
-                    })
-                  );
+            console.log(respuesta)
+
                     //console.log(respuesta.ID)
                   Toast.fire({
                     icon: "success",
-                    title: `¡Bienvenid@ ${usuarioRef.current.value}!`,
+                    title: `¡Se le envio correo a ${respuesta.correo}!`,
                   });
-            
-                  if(respuesta.ID === 1){
-                    console.log("Hola Admin")
-                    history.push('/admin')
-                  }else{
-                    console.log("Haga apuestas")
-                    history.push('/usuario')
-                  }
 
             
           } else if(rawResponse.status === 500){
             Toast.fire({
               icon: 'error',
-              title: 'Credenciales inválidas'
+              title: 'Usuario no existe'
             })
           } else {
             Toast.fire({
@@ -108,7 +94,7 @@ const Login = ({titulo})=>{
               <div className="rounded-t mb-0 px-6 py-6">
                 <div className="text-center mb-3">
                   <h6 className="text-gray-600 text-sm font-bold">
-                    Iniciar sesión
+                    Reestrablecer contraseña
                   </h6>
                 </div>
 
@@ -116,7 +102,7 @@ const Login = ({titulo})=>{
               </div>
               <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
                 <div className="text-gray-500 text-center mb-3 font-bold">
-                  <small>Ingresa tus datos</small>
+                  <small>Ingrese usuario o correo</small>
                 </div>
                 <form onSubmit={handleSubmit}>
                   <div className="relative w-full mb-3">
@@ -136,38 +122,13 @@ const Login = ({titulo})=>{
                     />
                   </div>
 
-                  <div className="relative w-full mb-3">
-                    <label
-                      className="block uppercase text-gray-700 text-xs font-bold mb-2"
-                      htmlFor="grid-password"
-                    >
-                      Contraseña:
-                    </label>
-                    <br/>
-                    <input
-                      type="password"
-                      ref={passwordRef}
-                      className="px-3 py-3 placeholder-gray-400 text-gray-700 bg-white rounded text-sm shadow focus:outline-none focus:shadow-outline w-full ease-linear transition-all duration-150"
-                      placeholder="Password"
-                      required
-                    />
-                    <p></p>
-                    <Link to="/forget" className="text-gray-300">
-                  <small>Olvidaste la contraseña</small>
-                </Link>
-                  </div>
+
                   <div align="center"> 
                     <button
                       className="bg-gray-900 text-black active:bg-gray-700 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
                       type="submit"
                     >
-                      Iniciar sesión
-                    </button>
-                    <button 
-                      className="bg-gray-900 text-black active:bg-gray-700 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
-                      onClick={redirect}
-                    >
-                      Registrar
+                      Enviar
                     </button>
        
                   </div>
@@ -187,4 +148,4 @@ const Login = ({titulo})=>{
     );
 }
 
-export default Login;
+export default Forget;

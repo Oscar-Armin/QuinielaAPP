@@ -2,7 +2,7 @@ import React, { useRef, useState  } from "react";
 import Footer from './Footer'
 import NavbarUser from './NavbarUser'
 import { useHistory } from 'react-router-dom';
-import { consultUser } from "../api/api-user";
+
 import Swal from "sweetalert2";
 
 
@@ -34,7 +34,7 @@ const Perfil = ()=>{
         history.push('/home')
         return(<></>);
     }
-    var obj = JSON.parse(a)
+    
     //console.log(obj.id_usuario)
     
     
@@ -52,68 +52,7 @@ const Perfil = ()=>{
 
     
       
-    async function evento() {
-        
-    
-        
-    
-        try {
-          const rawResponse = await consultUser(
-            obj.id_usuario
-          );
-    
-          
-          
-          //console.log(respuesta.ID)
-          
-          if (rawResponse.status === 201) {
-            
-            let respuesta = await rawResponse.json();
-            localStorage.setItem(
-                "editar_user",
-                JSON.stringify({
-                    id_usuario: respuesta.id_usuario,
-                    nombre:respuesta.nombre,
-                    usuario: respuesta.username,
-                    apellido:respuesta.apellido,
-                    nacimiento:respuesta.nacimiento,
-                    registro:respuesta.registro,
-                    correo:respuesta.correo,
-                    foto:respuesta.foto,
-                    password:respuesta.password
-                
-                })
-              );
-            
-            
-            
- 
-            
-          } else if(rawResponse.status === 500){
-            Toast.fire({
-              icon: 'error',
-              title: 'Algo ocurrio mal'
-            })
-          } else {
-            Toast.fire({
-              icon: "error",
-              title: "Algo ocurrio mal",
-            });
-            history.push('/registrar')
-          }
-        } catch (error) {
-          console.log(error);
-          Toast.fire({
-            icon: "error",
-            title: "No se pudo iniciar sesión",
-          });
-          history.push('/registrar')
-        }
-        
-        
-    }
-    
-    evento()
+
 
     
     async function handleSubmit(e) {
@@ -172,21 +111,26 @@ const Perfil = ()=>{
         } 
   
         var photo 
-        console.log(JSON.parse(localStorage.getItem('editar_user')).id_usuario)
-        console.log(usuarioRef.current.value)
-        console.log(nombreRef.current.value)
-        console.log(apellidoRef.current.value)
-        console.log(correoRef.current.value)
-        if(selectedFiles){
-            
-            photo =decodeBase64Image(JSON.parse(localStorage.getItem('editar_user')).foto)
+        var auxilar 
+        //console.log(JSON.parse(localStorage.getItem('editar_user')).id_usuario)
+        //console.log(usuarioRef.current.value)
+        //console.log(nombreRef.current.value)
+        //console.log(apellidoRef.current.value)
+        //console.log(correoRef.current.value)
+        //console.log(selectedFiles.length)
+        if(selectedFiles.length === 0){
+          auxilar = false
+            photo =JSON.parse(localStorage.getItem('editar_user')).foto
+            //console.log("NO cambie de foto")
             //console.log(photo)
         }else{
             photo = selectedFiles
-            //console.log(photo)
+            auxilar = true
+            //console.log("cambie de foto")
         }
-        console.log(photo)
-        console.log(contras)
+        
+        //console.log(photo)
+        //console.log(contras)
         
         try {
             
@@ -200,7 +144,8 @@ const Perfil = ()=>{
             correoRef.current.value,
             photo,
             contras,
-            
+            auxilar,
+            JSON.parse(localStorage.getItem('usuarioActual')).usuario
             
             
             
@@ -236,7 +181,9 @@ const Perfil = ()=>{
         } 
         setLoading(false);
       }
-      
+      if(!JSON.parse(localStorage.getItem('editar_user')).usuario){
+        window.location.reload(false);
+      }
       
     return (
 
@@ -274,11 +221,11 @@ const Perfil = ()=>{
                       <p/>
                       
                       <input align ="right"
-                      //value={JSON.parse(localStorage.getItem('editar_user')).usuario}
+                      placeholder={JSON.parse(localStorage.getItem('editar_user')).usuario}
                         type="text"
                         defaultValue={JSON.parse(localStorage.getItem('editar_user')).usuario}
                         ref={usuarioRef}
-                        placeholder={JSON.parse(localStorage.getItem('editar_user')).usuario}
+                        
                         className="px-3 py-3 placeholder-gray-400 text-gray-700 bg-white rounded text-sm shadow focus:outline-none focus:shadow-outline w-full ease-linear transition-all duration-150"
                         
                         
@@ -367,7 +314,7 @@ const Perfil = ()=>{
                             name="myFile" 
                             className="hidden"
                             ref={fotoRef}
-                            onChange={(e) => setSelectedFiles(e.target.files)}
+                            onChange={(e) => setSelectedFiles(e.target.files) }
                             
                           />
                         </label>
@@ -445,18 +392,6 @@ function password_validate(p) {
     return /[A-Z]/.test(p)&& /[a-z]/.test(p) && /[0-9]/.test(p) && /^[A-Za-z0-9]{8,20}$/.test(p) ;
 }
 
-function decodeBase64Image(dataString) {
-    var matches = dataString.match(/^data:([A-Za-z-+/]+);base64,(.+)$/),
-      response = {};
-  
-    if (matches.length !== 3) {
-      return new Error('Invalid input string');
-    }
-  
-    response.type = matches[1];
-    response.data = new Buffer(matches[2], 'base64');
-  
-    return response;
-  }
+
   
 export default Perfil;
