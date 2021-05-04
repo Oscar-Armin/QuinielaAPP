@@ -10,6 +10,7 @@ import Administrador from './Administrador';
 import Perfil from './Perfil';
 import Forget from './Forget';
 import Reset from './Reset';
+import Cargar from './Cargar';
 
 const Main = ()=>{
     return(
@@ -24,6 +25,7 @@ const Main = ()=>{
             <Route path="/perfil" component={ () => <Perfil  /> }  />
             <Route path="/forget" component={ () => <Forget  /> }  />
             <Route path="/reset/:id" component={ () => <Reset  /> }  />
+            <Route path="/carga" component={ () => <Cargar  /> }  />
             
             <Redirect to="/home" />
         </Switch>

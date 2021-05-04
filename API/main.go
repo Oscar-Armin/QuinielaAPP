@@ -1,15 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"mime/quotedprintable"
 	"net/http"
+	"net/smtp"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/godror/godror"
@@ -17,7 +21,7 @@ import (
 	"github.com/rs/cors"
 )
 
-// Types
+// Types MANEJO DE USUARIO
 type task struct {
 	ID      int    `json:"ID"`
 	Name    string `json:"Name"`
@@ -81,12 +85,21 @@ type actualizar struct {
 	Anterior string `json:"anterior"`
 }
 
+//structs carga de archivos
+type insertUser struct {
+	Username string `json:"username"`
+	Nombre   string `json:"nombre"`
+	Apellido string `json:"apellido"`
+	Password string `json:"password"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Wecome the my GO API!")
 }
 
+//MANEJO DE USUARIO
 func createUser(w http.ResponseWriter, r *http.Request) {
 	var newUser usuario
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -138,7 +151,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newUser)
-
 }
 
 func resetP(w http.ResponseWriter, r *http.Request) {
@@ -399,8 +411,143 @@ func forgetP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
+	send(resultado.Correo, resultado.ID, newUser.Usermail)
 	json.NewEncoder(w).Encode(resultado)
+	//send("hola")
 
+}
+func send(enviar string, identificador int, cuenta string) {
+	from := "armin99.cr@gmail.com"
+	pass := "armincr99"
+	to := enviar
+	fmt.Println(enviar)
+	msg := "From: " + from + "\n" +
+		"To: " + to + "\n" +
+		"Subject: Hello there " + cuenta + "\n\n" +
+		"	Para recuperar contraseña darl al siguiente link \n\n	http://localhost:3000/reset/" + strconv.Itoa(identificador)
+
+	err := smtp.SendMail("smtp.gmail.com:587",
+		smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
+		from, []string{to}, []byte(msg))
+
+	if err != nil {
+		log.Printf("smtp error: %s", err)
+		return
+	}
+
+	log.Print("sent, ")
+}
+
+func email(enviar string, identificador int, cuenta string) {
+	// sender data
+	from := "armin99.cr@gmail.com" //ex: "John.Doe@gmail.com"
+	password := "armincr99"        // ex: "ieiemcjdkejspqz"
+	// receiver address
+	toEmail := os.Getenv(enviar) // ex: "Jane.Smith@yahoo.com"
+	to := []string{toEmail}
+	// smtp - Simple Mail Transfer Protocol
+	host := "smtp.gmail.com"
+	port := "587"
+	address := host + ":" + port
+	// message
+	subject := "Subject: Our Golang Email\n"
+	body := "Cuenta " //+ cuenta + ":\n Para recuperar cuenta entrar al siguiente enlace \n http://localhost:3000/reset/" + strconv.Itoa(identificador)
+	message := []byte(subject + body)
+	// athentication data
+	// func PlainAuth(identity, username, password, host string) Auth
+	auth := smtp.PlainAuth("", from, password, host)
+	// send mail
+	// func SendMail(addr string, a Auth, from string, to []string, msg []byte) error
+	err := smtp.SendMail(address, auth, from, to, message)
+	if err != nil {
+		fmt.Println("err:", err)
+		return
+	}
+}
+
+const (
+	/**
+		Gmail SMTP Server
+	**/
+	SMTPServer = "smtp.gmail.com"
+)
+
+type Sender struct {
+	User     string
+	Password string
+}
+
+func NewSender(Username, Password string) Sender {
+
+	return Sender{Username, Password}
+}
+
+func (sender Sender) SendMail(Dest []string, Subject, bodyMessage string) {
+
+	msg := "From: " + sender.User + "\n" +
+		"To: " + strings.Join(Dest, ",") + "\n" +
+		"Subject: " + Subject + "\n" + bodyMessage
+
+	err := smtp.SendMail(SMTPServer+":587",
+		smtp.PlainAuth("", sender.User, sender.Password, SMTPServer),
+		sender.User, Dest, []byte(msg))
+
+	if err != nil {
+
+		fmt.Printf("smtp error: %s", err)
+		return
+	}
+
+	fmt.Println("Mail sent successfully!")
+}
+
+func (sender Sender) WriteEmail(dest []string, contentType, subject, bodyMessage string) string {
+
+	header := make(map[string]string)
+	header["From"] = sender.User
+
+	receipient := ""
+
+	for _, user := range dest {
+		receipient = receipient + user
+	}
+
+	header["To"] = receipient
+	header["Subject"] = subject
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = fmt.Sprintf("%s; charset=\"utf-8\"", contentType)
+	header["Content-Transfer-Encoding"] = "quoted-printable"
+	header["Content-Disposition"] = "inline"
+
+	message := ""
+
+	for key, value := range header {
+		message += fmt.Sprintf("%s: %s\r\n", key, value)
+	}
+
+	var encodedMessage bytes.Buffer
+
+	finalMessage := quotedprintable.NewWriter(&encodedMessage)
+	finalMessage.Write([]byte(bodyMessage))
+	finalMessage.Close()
+
+	message += "\r\n" + encodedMessage.String()
+
+	return message
+}
+
+func (sender *Sender) WriteHTMLEmail(dest []string, subject, bodyMessage string) string {
+
+	return sender.WriteEmail(dest, "text/html", subject, bodyMessage)
+}
+
+func (sender *Sender) WritePlainEmail(dest []string, subject, bodyMessage string) string {
+
+	return sender.WriteEmail(dest, "text/plain", subject, bodyMessage)
+}
+
+type Dest struct {
+	Name string
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
@@ -457,6 +604,35 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
 
+//funciones insert
+func ingresoUser(w http.ResponseWriter, r *http.Request) {
+	var newUser insertUser
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	//rows, err := db.Query("select to_char(sysdate, 'HH24:MI:SS') from dual")
+	//rows, err := db.Query("insert into usuario(username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) values ()")
+	currentTime := time.Now()
+	rows, err := db.Query("INSERT INTO usuario (username,nombre,apellido,fecha_registro,contrasena) VALUES ('" + newUser.Username + "','" + newUser.Nombre + "','" + newUser.Apellido + "',TO_DATE('" + currentTime.Format("02/01/2006") + "','dd/mm/yyyy'),'" + newUser.Password + "')")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("godror", "ADMIN/1234@172.17.0.2:1521/ORCL18")
@@ -468,14 +644,16 @@ func main() {
 	defer db.Close()
 
 	router := mux.NewRouter().StrictSlash(true)
-
+	//MANEJO DE USUARIO
 	router.HandleFunc("/creaUser", createUser).Methods("POST")
 	router.HandleFunc("/login", loginUser).Methods("POST")
-	//router.HandleFunc("/upload", uploadFile).Methods("POST")
+
 	router.HandleFunc("/consultarUser", consultUser).Methods("POST")
 	router.HandleFunc("/actualizarUser", updateUser).Methods("POST")
 	router.HandleFunc("/consultID", forgetP).Methods("POST")
 	router.HandleFunc("/resetP", resetP).Methods("POST")
+	//CARGA DE ARCHIVO
+	router.HandleFunc("/cargaUser", ingresoUser).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

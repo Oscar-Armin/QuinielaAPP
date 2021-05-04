@@ -3,7 +3,7 @@ const md5 = require("md5");
 const url_api = "http://localhost:3080";
 
 export async function loginUsuario(usuario, password) {
-    console.log(md5(password));
+    
     return fetch(url_api + "/login", {
       
 
