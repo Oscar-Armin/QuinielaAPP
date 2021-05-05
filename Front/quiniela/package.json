@@ -2,7 +2,7 @@
   "name": "quiniela",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:3001",
+  
   "dependencies": {
     "@progress/kendo-react-dateinputs": "^4.5.0",
     "@testing-library/jest-dom": "^5.12.0",

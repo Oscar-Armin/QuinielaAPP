@@ -93,6 +93,23 @@ type insertUser struct {
 	Password string `json:"password"`
 }
 
+type insertTMP struct {
+	Name   string `json:"nombre"`
+	Inicio string `json:"inicio"`
+	Fin    string `json:"fin"`
+}
+
+type insertRM struct {
+	Id_user   int    `json:"id_user"`
+	Temporada string `json:"temporada"`
+	Membresia string `json:"membresia"`
+}
+
+type ingresoJ struct {
+	Njornada  int    `json:"njornada"`
+	Temporada string `json:"temporada"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -604,7 +621,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
 
-//funciones insert
+//funciones carga
 func ingresoUser(w http.ResponseWriter, r *http.Request) {
 	var newUser insertUser
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -620,6 +637,84 @@ func ingresoUser(w http.ResponseWriter, r *http.Request) {
 	//rows, err := db.Query("insert into usuario(username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) values ()")
 	currentTime := time.Now()
 	rows, err := db.Query("INSERT INTO usuario (username,nombre,apellido,fecha_registro,contrasena) VALUES ('" + newUser.Username + "','" + newUser.Nombre + "','" + newUser.Apellido + "',TO_DATE('" + currentTime.Format("02/01/2006") + "','dd/mm/yyyy'),'" + newUser.Password + "')")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoTMP(w http.ResponseWriter, r *http.Request) {
+	var newUser insertTMP
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	rows, err := db.Query("INSERT INTO temporada (nombre,fecha_inicio,fecha_fin) VALUES ('" + newUser.Name + "',TO_DATE('" + newUser.Inicio + "','dd/mm/yyyy'),TO_DATE('" + newUser.Fin + "','dd/mm/yyyy'))")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoRMEM(w http.ResponseWriter, r *http.Request) {
+	var newUser insertRM
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	rows, err := db.Query("insert into registro_membresia  (id_usuario,id_temporada,id_membresia) VALUES (" + strconv.Itoa(newUser.Id_user) + ",(select id_temporada from temporada where nombre= '" + newUser.Temporada + "'),(select id_membresia from membresia where nombre= '" + newUser.Membresia + "'))")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoJOR(w http.ResponseWriter, r *http.Request) {
+	var newUser ingresoJ
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	rows, err := db.Query("insert into jornada (numero_jornada,estado,id_fase,id_temporada) VALUES (" + strconv.Itoa(newUser.Njornada) + ",0,(select id_fase from fase where nombre = 'finalizada'),(select id_temporada from temporada where nombre='" + newUser.Temporada + "'))")
 	if err != nil {
 		fmt.Println("Error running query")
 		fmt.Println(err)
@@ -654,6 +749,9 @@ func main() {
 	router.HandleFunc("/resetP", resetP).Methods("POST")
 	//CARGA DE ARCHIVO
 	router.HandleFunc("/cargaUser", ingresoUser).Methods("POST")
+	router.HandleFunc("/cargaTMP", ingresoTMP).Methods("POST")
+	router.HandleFunc("/cargaRMEM", ingresoRMEM).Methods("POST")
+	router.HandleFunc("/cargaJOR", ingresoJOR).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

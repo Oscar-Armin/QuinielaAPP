@@ -20,3 +20,60 @@ export async function cargar_usuario(usuario,nombre,apellido, password) {
       }),
     });
 }
+
+export async function cargar_temporadas(nombre,inicio,fin) {
+    
+  return fetch(url_api + "/cargaTMP", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      nombre: nombre,
+      inicio:inicio,
+      fin:fin
+    }),
+  });
+}
+
+export async function carga_rmembresia(id_user,temporada,membresia) {
+    
+  return fetch(url_api + "/cargaRMEM", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      id_user: id_user,
+      temporada:temporada,
+      membresia:membresia
+    }),
+  });
+}
+
+export async function carga_jornada(id_jornada,temporada) {
+    
+  return fetch(url_api + "/cargaJOR", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      njornada: id_jornada,
+      temporada:temporada
+      
+    }),
+  });
+}

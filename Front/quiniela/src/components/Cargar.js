@@ -4,7 +4,9 @@ import NavbarAdmin from './NavbarAdmin'
 import { useHistory } from 'react-router-dom';
 import Swal from "sweetalert2";
 import YAML from 'yaml'
-import { cargar_usuario } from "../api/api-carga";
+import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada } from "../api/api-carga";
+
+import { forgetUsuario } from "../api/api-user";
 //import { useHistory } from 'react-router-dom';
 
 
@@ -66,6 +68,12 @@ function Cargar() {
           //console.log(cadena)
           const resa = YAMLtoJSON(cadena)
           const entrada = JSON.parse(resa)
+          let id_user =0
+          let rawResponse
+          let respuesta
+          let mes
+          let fecha_inicio
+          let fecha_fin
           for (let i in entrada) {
             //console.log("--------------------")
             //console.log(entrada[i].nombre)
@@ -73,8 +81,8 @@ function Cargar() {
             //console.log(entrada[i].password)
             //console.log(entrada[i].username)
 
-            
-            const rawResponse = await cargar_usuario(
+            //carga de usuario            
+            rawResponse = await cargar_usuario(//--------------------------
                 
                 entrada[i].username,
                 entrada[i].nombre,
@@ -95,34 +103,81 @@ function Cargar() {
                 console.log("Error al cargo usuario "+entrada[i].username)
               }
 
+             rawResponse = await forgetUsuario(entrada[i].username);
+              if(rawResponse.status === 201){
+                respuesta = await rawResponse.json();
+                id_user = respuesta.ID;
+              console.log(id_user)
+
+            }else if(rawResponse.status === 500){
+              bandera = false;
+              console.log("Error al cargo usuario "+entrada[i].username)
+            }else{
+              bandera = false;
+              console.log("Error al cargo usuario "+entrada[i].username)
+            }
+
+            
+            for (let j in entrada[i].resultados) {
+                let strTMP = entrada[i].resultados[j].temporada
+                let anio = strTMP.substring(0,4)
+                
+                if(strTMP.length === 7){
+                  mes = strTMP.substring(6,7)
+                }else{
+                  mes = strTMP.substring(6,8)
+                }
+                
+                fecha_inicio = "01/"+mes+"/"+anio
+                fecha_fin = "30/"+mes+"/"+anio
+                
+                //ingreso de temporadas
+                rawResponse = await cargar_temporadas(//------------------------
+                  strTMP,
+                  fecha_inicio,
+                  fecha_fin
+                );
+                //console.log(entrada[i].resultados[j].tier)
+                //Ingreso de las membresias que tenia el usuario
+                
+                
+                rawResponse = await carga_rmembresia(//---------------------------------------------
+                  id_user,
+                  strTMP,
+                  entrada[i].resultados[j].tier
+                );
+                
+                for (let k in entrada[i].resultados[j].jornadas) {
+                  
+                  //carga_jornada
+                  rawResponse = await carga_jornada(//---------------------------------------------
+                    parseInt(entrada[i].resultados[j].jornadas[k].jornada.substring(1,2)),
+                    strTMP
+                    
+                  );
+                  for (let l in entrada[i].resultados[j].jornadas[k].predicciones) {
+                    console.log("-------------------------")
+                    console.log(entrada[i].resultados[j].jornadas[k].predicciones[l].deporte)
+                    console.log("-------------------------")
+                  }
+                  
+                }
+            }
+
           }
             
-          //console.log(respuesta.ID)
           
-          //if (rawResponse.status === 201) {
-              if (bandera){
+          if (bandera){
 
-              //console.log(selectedFiles[0].result)
-            //const respuesta = await rawResponse.json();
-            //console.log(respuesta)
-
-                    //console.log(respuesta.ID)
                   Toast.fire({
                     icon: "success",
                     title: `¡Se le cargo correctamente la informacion !`,
                   });
-/*
-            
-          } else if(rawResponse.status === 500){
-            Toast.fire({
-              icon: 'error',
-              title: 'Usuario no existe'
-            })
           } else {
             Toast.fire({
               icon: "error",
               title: "No se pudo iniciar sesión",
-            });*/
+            });
           }
         } catch (error) {
           console.log(error);
