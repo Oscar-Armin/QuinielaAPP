@@ -6,7 +6,8 @@ import { useHistory } from 'react-router-dom';
 function Navbar_user() {
     let history = useHistory();
     const redirect = () => {
-        localStorage.clear();
+        localStorage.removeItem("usuarioActual");
+        localStorage.removeItem("editar_user");
         history.push('/home')
       }
     

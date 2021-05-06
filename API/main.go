@@ -110,6 +110,21 @@ type ingresoJ struct {
 	Temporada string `json:"temporada"`
 }
 
+type ingresoD struct {
+	Nombre string `json:"nombre"`
+}
+
+type jsonPartido struct {
+	Equipo_local     string `json:"equipo_local"`
+	Equipo_visitante string `json:"equipo_visitante"`
+	Puntos_local     int    `json:"puntos_local"`
+	Puntos_visitante int    `json:"puntos_visitante"`
+	Fecha_partido    string `json:"fecha_partido"`
+	Deporte          string `json:"deporte"`
+	Jornada          int    `json:"jornada"`
+	Temporada        string `json:"temporada"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -638,8 +653,8 @@ func ingresoUser(w http.ResponseWriter, r *http.Request) {
 	currentTime := time.Now()
 	rows, err := db.Query("INSERT INTO usuario (username,nombre,apellido,fecha_registro,contrasena) VALUES ('" + newUser.Username + "','" + newUser.Nombre + "','" + newUser.Apellido + "',TO_DATE('" + currentTime.Format("02/01/2006") + "','dd/mm/yyyy'),'" + newUser.Password + "')")
 	if err != nil {
-		fmt.Println("Error running query")
-		fmt.Println(err)
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -662,7 +677,7 @@ func ingresoTMP(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(reqBody, &newUser)
 	fmt.Println(newUser)
 
-	rows, err := db.Query("INSERT INTO temporada (nombre,fecha_inicio,fecha_fin) VALUES ('" + newUser.Name + "',TO_DATE('" + newUser.Inicio + "','dd/mm/yyyy'),TO_DATE('" + newUser.Fin + "','dd/mm/yyyy'))")
+	rows, err := db.Query("INSERT INTO temporada (nombre) VALUES ('" + newUser.Name + "')")
 	if err != nil {
 		fmt.Println("Error running query")
 		fmt.Println(err)
@@ -686,12 +701,12 @@ func ingresoRMEM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Unmarshal(reqBody, &newUser)
-	fmt.Println(newUser)
+	//fmt.Println(newUser)
 
 	rows, err := db.Query("insert into registro_membresia  (id_usuario,id_temporada,id_membresia) VALUES (" + strconv.Itoa(newUser.Id_user) + ",(select id_temporada from temporada where nombre= '" + newUser.Temporada + "'),(select id_membresia from membresia where nombre= '" + newUser.Membresia + "'))")
 	if err != nil {
-		fmt.Println("Error running query")
-		fmt.Println(err)
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -712,12 +727,90 @@ func ingresoJOR(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Unmarshal(reqBody, &newUser)
-	fmt.Println(newUser)
+	//fmt.Println(newUser)
 
-	rows, err := db.Query("insert into jornada (numero_jornada,estado,id_fase,id_temporada) VALUES (" + strconv.Itoa(newUser.Njornada) + ",0,(select id_fase from fase where nombre = 'finalizada'),(select id_temporada from temporada where nombre='" + newUser.Temporada + "'))")
+	rows, err := db.Query("BEGIN insert_jornada(" + strconv.Itoa(newUser.Njornada) + ",'" + newUser.Temporada + "'); END;")
 	if err != nil {
-		fmt.Println("Error running query")
-		fmt.Println(err)
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoDEP(w http.ResponseWriter, r *http.Request) {
+	var newUser ingresoD
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	//fmt.Println(newUser)
+
+	rows, err := db.Query("BEGIN insert_deporte('" + newUser.Nombre + "'); END;")
+	if err != nil {
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoEQ(w http.ResponseWriter, r *http.Request) {
+	var newUser ingresoD
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	//fmt.Println(newUser)
+
+	rows, err := db.Query("insert into equipo (nombre) VALUES('" + newUser.Nombre + "')")
+	if err != nil {
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoPAR(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonPartido
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	//fmt.Println(newUser)
+	//strconv.Itoa(newUser.Njornada)
+	rows, err := db.Query("BEGIN insert_partido('" + newUser.Equipo_local + "','" + newUser.Equipo_visitante + "'," + strconv.Itoa(newUser.Puntos_local) + "," + strconv.Itoa(newUser.Puntos_visitante) + ",'" + newUser.Fecha_partido + "','" + newUser.Deporte + "'," + strconv.Itoa(newUser.Jornada) + ",'" + newUser.Temporada + "'); END;")
+	if err != nil {
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -752,6 +845,9 @@ func main() {
 	router.HandleFunc("/cargaTMP", ingresoTMP).Methods("POST")
 	router.HandleFunc("/cargaRMEM", ingresoRMEM).Methods("POST")
 	router.HandleFunc("/cargaJOR", ingresoJOR).Methods("POST")
+	router.HandleFunc("/cargaDEP", ingresoDEP).Methods("POST")
+	router.HandleFunc("/cargaEQ", ingresoEQ).Methods("POST")
+	router.HandleFunc("/cargaPAR", ingresoPAR).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

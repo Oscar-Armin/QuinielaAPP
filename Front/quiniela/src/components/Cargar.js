@@ -4,13 +4,14 @@ import NavbarAdmin from './NavbarAdmin'
 import { useHistory } from 'react-router-dom';
 import Swal from "sweetalert2";
 import YAML from 'yaml'
-import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada } from "../api/api-carga";
+import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada,carga_deporte,carga_equipo,carga_partido } from "../api/api-carga";
 
 import { forgetUsuario } from "../api/api-user";
 //import { useHistory } from 'react-router-dom';
 
 
 function Cargar() {
+    
     let fileReader;
     //const [selectedFiles, setSelectedFiles] = useState([]);
     let history = useHistory();
@@ -84,10 +85,10 @@ function Cargar() {
             //carga de usuario            
             rawResponse = await cargar_usuario(//--------------------------
                 
-                entrada[i].username,
-                entrada[i].nombre,
+                entrada[i].username.replace("'", ""),
+                entrada[i].nombre.replace("'", ""),
                 
-                entrada[i].apellido,
+                entrada[i].apellido.replace("'", ""),
                 entrada[i].password,
                 
               );
@@ -155,10 +156,39 @@ function Cargar() {
                     strTMP
                     
                   );
+                  
                   for (let l in entrada[i].resultados[j].jornadas[k].predicciones) {
-                    console.log("-------------------------")
-                    console.log(entrada[i].resultados[j].jornadas[k].predicciones[l].deporte)
-                    console.log("-------------------------")
+                    //carga_deporte 
+                    
+                    rawResponse = await carga_deporte(//---------------------------------------------
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].deporte
+                      
+                    );
+
+
+                    //carga equioos
+                    
+                    rawResponse = await carga_equipo(//---------------------------------------------
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].visitante
+                      
+                    );
+                    rawResponse = await carga_equipo(//---------------------------------------------
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].local
+                      
+                    );
+                    
+                    
+                    rawResponse = await carga_partido(//---------------------------------------------
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].local,
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].visitante,
+                      parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.local),
+                      parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.visitante),
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].fecha,
+                      entrada[i].resultados[j].jornadas[k].predicciones[l].deporte,
+                      parseInt(entrada[i].resultados[j].jornadas[k].jornada.substring(1,2)),
+                      strTMP
+                    );
+                      console.log("----------------------")
                   }
                   
                 }
@@ -167,8 +197,8 @@ function Cargar() {
           }
             
           
-          if (bandera){
-
+          if (true){
+                  console.log(bandera)
                   Toast.fire({
                     icon: "success",
                     title: `¡Se le cargo correctamente la informacion !`,
@@ -192,7 +222,9 @@ function Cargar() {
     
     return (
         <div>
+          
             <NavbarAdmin />
+            
             
             <div className="container mx-auto px-4 h-full">
         <div className="flex content-center items-center justify-center h-full">
@@ -203,6 +235,7 @@ function Cargar() {
                   <h6 className="text-gray-600 text-sm font-bold">
                     Carga masiva de datos
                   </h6>
+                  
                 </div>
 
                 <hr className="mt-6 border-b-1 border-gray-400" />
@@ -211,11 +244,14 @@ function Cargar() {
                 <div className="text-gray-500 text-center mb-3 font-bold">
                   <small>Seleccione archivo yaml</small>
                 </div>
+                
                 <form onSubmit={handleSubmit}>
+
                   <div className="relative w-full mb-3">
                     <label
                       className="block uppercase text-gray-700 text-xs font-bold mb-2"
                       htmlFor="grid-password"
+                      
                     >
                       Usuario:
                     </label>
@@ -258,6 +294,9 @@ function Cargar() {
           </div>
         </div>
       </div>
+      
+  
+
             <Footer />
         </div>
     )

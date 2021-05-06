@@ -77,3 +77,67 @@ export async function carga_jornada(id_jornada,temporada) {
     }),
   });
 }
+
+export async function carga_deporte(deporte) {
+    
+  return fetch(url_api + "/cargaDEP", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      nombre: deporte
+      
+      
+    }),
+  });
+}
+
+export async function carga_equipo(deporte) {
+    
+  return fetch(url_api + "/cargaEQ", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      nombre: deporte
+      
+      
+    }),
+  });
+}
+
+export async function carga_partido(equipo_local,equipo_visitante,puntos_local,puntos_visitante,fecha_partido,deporte,jornada,temporada) {
+    
+  return fetch(url_api + "/cargaPAR", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      
+      equipo_local: equipo_local,
+      equipo_visitante:equipo_visitante,
+      puntos_local:puntos_local,
+      puntos_visitante:puntos_visitante,
+      fecha_partido:fecha_partido,
+      deporte:deporte,
+      jornada:jornada,
+      temporada:temporada
+
+      
+    }),
+  });
+}
