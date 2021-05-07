@@ -125,6 +125,20 @@ type jsonPartido struct {
 	Temporada        string `json:"temporada"`
 }
 
+type jsonPrediccion struct {
+	Username         string `json:"username"`
+	Equipo_local     string `json:"equipo_local"`
+	Equipo_visitante string `json:"equipo_visitante"`
+	Deporte          string `json:"deporte"`
+	Fecha_partido    string `json:"fecha_partido"`
+
+	Jornada          int    `json:"jornada"`
+	Temporada        string `json:"temporada"`
+	Puntos_local     int    `json:"puntos_local"`
+	Puntos_visitante int    `json:"puntos_visitante"`
+	Puntos           int    `json:"puntos"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -463,7 +477,7 @@ func send(enviar string, identificador int, cuenta string) {
 		from, []string{to}, []byte(msg))
 
 	if err != nil {
-		log.Printf("smtp error: %s", err)
+		//log.Printf("smtp error: %s", err)
 		return
 	}
 
@@ -638,6 +652,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 //funciones carga
 func ingresoUser(w http.ResponseWriter, r *http.Request) {
+
 	var newUser insertUser
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -675,12 +690,12 @@ func ingresoTMP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Unmarshal(reqBody, &newUser)
-	fmt.Println(newUser)
+	//fmt.Println(newUser)
 
 	rows, err := db.Query("INSERT INTO temporada (nombre) VALUES ('" + newUser.Name + "')")
 	if err != nil {
-		fmt.Println("Error running query")
-		fmt.Println(err)
+		//fmt.Println("Error running query")
+		//fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -753,12 +768,12 @@ func ingresoDEP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Unmarshal(reqBody, &newUser)
-	//fmt.Println(newUser)
+	fmt.Println(newUser)
 
 	rows, err := db.Query("BEGIN insert_deporte('" + newUser.Nombre + "'); END;")
 	if err != nil {
 		//fmt.Println("Error running query")
-		//fmt.Println(err)
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -810,7 +825,33 @@ func ingresoPAR(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("BEGIN insert_partido('" + newUser.Equipo_local + "','" + newUser.Equipo_visitante + "'," + strconv.Itoa(newUser.Puntos_local) + "," + strconv.Itoa(newUser.Puntos_visitante) + ",'" + newUser.Fecha_partido + "','" + newUser.Deporte + "'," + strconv.Itoa(newUser.Jornada) + ",'" + newUser.Temporada + "'); END;")
 	if err != nil {
 		//fmt.Println("Error running query")
-		//fmt.Println(err)
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func ingresoPRE(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonPrediccion
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+	//strconv.Itoa(newUser.Njornada)
+	rows, err := db.Query("BEGIN insert_prediccion('" + newUser.Username + "','" + newUser.Equipo_local + "','" + newUser.Equipo_visitante + "','" + newUser.Deporte + "','" + newUser.Fecha_partido + "'," + strconv.Itoa(newUser.Jornada) + ",'" + newUser.Temporada + "'," + strconv.Itoa(newUser.Puntos_local) + "," + strconv.Itoa(newUser.Puntos_visitante) + "," + strconv.Itoa(newUser.Puntos) + "); END;")
+	if err != nil {
+		//fmt.Println("Error running query")
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -848,6 +889,7 @@ func main() {
 	router.HandleFunc("/cargaDEP", ingresoDEP).Methods("POST")
 	router.HandleFunc("/cargaEQ", ingresoEQ).Methods("POST")
 	router.HandleFunc("/cargaPAR", ingresoPAR).Methods("POST")
+	router.HandleFunc("/cargaPRE", ingresoPRE).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

@@ -4,7 +4,7 @@ import NavbarAdmin from './NavbarAdmin'
 import { useHistory } from 'react-router-dom';
 import Swal from "sweetalert2";
 import YAML from 'yaml'
-import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada,carga_deporte,carga_equipo,carga_partido } from "../api/api-carga";
+import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada,carga_deporte,carga_equipo,carga_partido, carga_prediccion } from "../api/api-carga";
 
 import { forgetUsuario } from "../api/api-user";
 //import { useHistory } from 'react-router-dom';
@@ -32,7 +32,7 @@ function Cargar() {
     const handleFileRead = (e) =>{
         cadena= fileReader.result;
         //cadena = fileReader.result;
-        //console.log(content)
+        console.log(cadena)
     }
 
     const handleFileChosen = (file) =>{
@@ -57,6 +57,7 @@ function Cargar() {
 
       async function handleSubmit(e) {
         e.preventDefault();
+        
         let bandera = false;
         //setLoading(true);
     
@@ -65,7 +66,7 @@ function Cargar() {
             selectedFiles
             
           );*/
-    
+          
           //console.log(cadena)
           const resa = YAMLtoJSON(cadena)
           const entrada = JSON.parse(resa)
@@ -75,13 +76,23 @@ function Cargar() {
           let mes
           let fecha_inicio
           let fecha_fin
+          let puntos
+          
+            let diferencia
+          let prediccion_visitante
+          let prediccion_local
+
+          let res_visitante
+          let res_local
+          console.log(entrada)
           for (let i in entrada) {
             //console.log("--------------------")
             //console.log(entrada[i].nombre)
             //console.log(entrada[i].apellido)
             //console.log(entrada[i].password)
             //console.log(entrada[i].username)
-
+            
+            
             //carga de usuario            
             rawResponse = await cargar_usuario(//--------------------------
                 
@@ -92,6 +103,7 @@ function Cargar() {
                 entrada[i].password,
                 
               );
+              
               if(rawResponse.status === 201){
                   bandera = true;
                 console.log("Se cargo usuario "+entrada[i].username)
@@ -104,7 +116,7 @@ function Cargar() {
                 console.log("Error al cargo usuario "+entrada[i].username)
               }
 
-             rawResponse = await forgetUsuario(entrada[i].username);
+             rawResponse = await forgetUsuario(entrada[i].username);//-------------------------------------
               if(rawResponse.status === 201){
                 respuesta = await rawResponse.json();
                 id_user = respuesta.ID;
@@ -129,10 +141,16 @@ function Cargar() {
                   mes = strTMP.substring(6,8)
                 }
                 
-                fecha_inicio = "01/"+mes+"/"+anio
-                fecha_fin = "30/"+mes+"/"+anio
                 
+                if (mes === 2){
+                  fecha_inicio = "01/"+mes+"/"+anio
+                  fecha_fin = "26/"+mes+"/"+anio
+                }else{
+                  fecha_inicio = "01/"+mes+"/"+anio
+                  fecha_fin = "30/"+mes+"/"+anio
+                }
                 //ingreso de temporadas
+                
                 rawResponse = await cargar_temporadas(//------------------------
                   strTMP,
                   fecha_inicio,
@@ -177,18 +195,78 @@ function Cargar() {
                       
                     );
                     
-                    
+                    res_local = parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.local)
+                    res_visitante = parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.visitante)
+
                     rawResponse = await carga_partido(//---------------------------------------------
                       entrada[i].resultados[j].jornadas[k].predicciones[l].local,
                       entrada[i].resultados[j].jornadas[k].predicciones[l].visitante,
-                      parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.local),
-                      parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].resultado.visitante),
+                      res_local,
+                      res_visitante,
                       entrada[i].resultados[j].jornadas[k].predicciones[l].fecha,
                       entrada[i].resultados[j].jornadas[k].predicciones[l].deporte,
                       parseInt(entrada[i].resultados[j].jornadas[k].jornada.substring(1,2)),
                       strTMP
                     );
+
+                    //carga_prediccion
+                      
+                      //calculo puntos
+                      
+                      prediccion_local = parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].prediccion.local)
+                      prediccion_visitante = parseInt(entrada[i].resultados[j].jornadas[k].predicciones[l].prediccion.visitante)
+
+                      if(res_local > res_visitante && prediccion_local > prediccion_visitante ){
+                        if (res_local === prediccion_local && res_visitante === prediccion_visitante){
+                          puntos =10;
+                        }else{
+                          if (Math.abs(res_local - prediccion_local ) >2){
+                            puntos = 3
+                          }else{
+                            puntos = 5
+                          }
+                        }
+                      }else if(res_local < res_visitante && prediccion_local < prediccion_visitante ){
+                        if (res_local === prediccion_local && res_visitante === prediccion_visitante){
+                          puntos =10;
+                        }else{
+                          if (Math.abs(res_visitante - prediccion_visitante ) >2){
+                            puntos = 3
+                          }else{
+                            puntos = 5
+                          }
+                        }
+                      }else if(res_local === res_visitante && prediccion_local === prediccion_visitante ){
+                        if (res_local === prediccion_local && res_visitante === prediccion_visitante){
+                          puntos =10;
+                        }else{
+                          if (Math.abs(res_visitante - prediccion_visitante ) >2){
+                            puntos = 3
+                          }else{
+                            puntos = 5
+                          }
+                        }
+                      }else{
+                        puntos =0;
+                      }
+
+                      
+                      
                       console.log("----------------------")
+                      rawResponse = await carga_prediccion(//---------------------------------------------
+                        entrada[i].username.replace("'", ""),
+                        entrada[i].resultados[j].jornadas[k].predicciones[l].local,
+                        entrada[i].resultados[j].jornadas[k].predicciones[l].visitante,
+                        entrada[i].resultados[j].jornadas[k].predicciones[l].deporte,
+                        entrada[i].resultados[j].jornadas[k].predicciones[l].fecha,
+                        
+                        parseInt(entrada[i].resultados[j].jornadas[k].jornada.substring(1,2)),
+                        strTMP,
+                        prediccion_local,
+                        prediccion_visitante,
+                        puntos
+                      );
+
                   }
                   
                 }

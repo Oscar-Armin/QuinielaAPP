@@ -141,3 +141,31 @@ export async function carga_partido(equipo_local,equipo_visitante,puntos_local,p
     }),
   });
 }
+
+export async function carga_prediccion(username,equipo_local,equipo_visitante,deporte,fecha_partido,jornada,temporada,puntos_local,puntos_visitante,puntos) {
+    
+  return fetch(url_api + "/cargaPRE", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username:username,
+      equipo_local: equipo_local,
+      equipo_visitante:equipo_visitante,
+      deporte:deporte,
+      fecha_partido:fecha_partido,
+      
+      jornada:jornada,
+      temporada:temporada,
+      puntos_local:puntos_local,
+      puntos_visitante:puntos_visitante,
+      puntos:puntos
+
+      
+    }),
+  });
+}
