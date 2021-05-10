@@ -7,6 +7,9 @@ function Navbar_user() {
     let history = useHistory();
     const redirect = () => {
         localStorage.removeItem("usuarioActual");
+        localStorage.removeItem("deportes");
+        localStorage.removeItem("colores");
+        localStorage.removeItem("temporada");
         history.push('/home')
       }
     
@@ -36,7 +39,7 @@ function Navbar_user() {
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                        <a className="nav-link active" aria-current="page" href="/home">Temporadas </a>
+                        <a className="nav-link active" aria-current="page" href="/temporadas_admin">Temporadas </a>
                     </li>
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -46,7 +49,7 @@ function Navbar_user() {
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                        <a className="nav-link active" aria-current="page" href="/home">Deportes </a>
+                        <a className="nav-link active" aria-current="page" href="/Adeportes">Deportes </a>
                     </li>
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">

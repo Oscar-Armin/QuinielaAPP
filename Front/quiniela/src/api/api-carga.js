@@ -169,3 +169,37 @@ export async function carga_prediccion(username,equipo_local,equipo_visitante,de
     }),
   });
 }
+
+export async function carga_puntos() {
+    
+  return fetch(url_api + "/carga_puntos", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      mensaje:"Funciono",
+
+    }),
+  });
+}
+
+export async function carga_recompensa() {
+    
+  return fetch(url_api + "/carga_recompensa", {
+    
+
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      mensaje:"Funciono",
+
+    }),
+  });
+}

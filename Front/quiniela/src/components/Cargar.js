@@ -1,10 +1,10 @@
 import React from "react";
-import Footer from './Footer'
-import NavbarAdmin from './NavbarAdmin'
+import Footer from './Footer';
+import NavbarAdmin from './NavbarAdmin';
 import { useHistory } from 'react-router-dom';
 import Swal from "sweetalert2";
 import YAML from 'yaml'
-import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada,carga_deporte,carga_equipo,carga_partido, carga_prediccion } from "../api/api-carga";
+import { cargar_usuario,cargar_temporadas,carga_rmembresia,carga_jornada,carga_deporte,carga_equipo,carga_partido, carga_prediccion, carga_puntos, carga_recompensa } from "../api/api-carga";
 
 import { forgetUsuario } from "../api/api-user";
 //import { useHistory } from 'react-router-dom';
@@ -71,14 +71,14 @@ function Cargar() {
           const resa = YAMLtoJSON(cadena)
           const entrada = JSON.parse(resa)
           let id_user =0
-          let rawResponse
+          let rawResponse;
           let respuesta
           let mes
           let fecha_inicio
           let fecha_fin
           let puntos
           
-            let diferencia
+            
           let prediccion_visitante
           let prediccion_local
 
@@ -273,10 +273,21 @@ function Cargar() {
             }
 
           }
-            
+          rawResponse = await carga_puntos();
+          if (rawResponse.status === 201) {
+            bandera = true;
+          }else{
+            bandera = false;
+          }
+          rawResponse = await carga_recompensa();
+          if (rawResponse.status === 201) {
+            bandera = true;
+          }else{
+            bandera = false;
+          }
           
-          if (true){
-                  console.log(bandera)
+          if (bandera){
+                  
                   Toast.fire({
                     icon: "success",
                     title: `¡Se le cargo correctamente la informacion !`,

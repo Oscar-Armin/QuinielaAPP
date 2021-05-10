@@ -11,6 +11,8 @@ import Perfil from './Perfil';
 import Forget from './Forget';
 import Reset from './Reset';
 import Cargar from './Cargar';
+import TemporadaAdmin from './TemporadaAdmin';
+import ADeportes from './ADeportes';
 
 const Main = ()=>{
     return(
@@ -26,6 +28,9 @@ const Main = ()=>{
             <Route path="/forget" component={ () => <Forget  /> }  />
             <Route path="/reset/:id" component={ () => <Reset  /> }  />
             <Route path="/carga" component={ () => <Cargar  /> }  />
+            <Route path="/temporadas_admin" component={ () => <TemporadaAdmin  /> }  />
+            <Route path="/Adeportes" component={ () => <ADeportes  /> }  />
+            
             
             <Redirect to="/home" />
         </Switch>

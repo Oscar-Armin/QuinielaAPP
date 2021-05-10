@@ -139,6 +139,10 @@ type jsonPrediccion struct {
 	Puntos           int    `json:"puntos"`
 }
 
+type jsonVacio struct {
+	Mensaje string `json:"mensaje"`
+}
+
 var db *sql.DB
 
 func indexRoute(w http.ResponseWriter, r *http.Request) {
@@ -862,6 +866,440 @@ func ingresoPRE(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newUser)
 }
 
+func cargar_puntos(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+	//strconv.Itoa(newUser.Njornada)
+	rows, err := db.Query("BEGIN proceso_usuario; END;")
+	if err != nil {
+		//fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func cargar_recompensas(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	reqBody, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//strconv.Itoa(newUser.Njornada)
+	rows, err := db.Query("BEGIN calculo_temporada; END;")
+	if err != nil {
+		//fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newUser)
+}
+
+//modulo admin
+type jsonTemp struct {
+	Name string `json:"name"`
+}
+type jsonDinero struct {
+	Cantidad int `json:"cantidad"`
+}
+
+type jsonTempo struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type jsonColor struct {
+	ID    int    `json:"id"`
+	Color string `json:"color"`
+}
+
+type jsonDeporte struct {
+	Nombre string `json:"nombre"`
+	Color  string `json:"color"`
+	Foto   string `json:"foto"`
+}
+
+type idSport struct {
+	ID int `json:"id"`
+}
+
+type allColors []jsonColor
+
+func getDinero(w http.ResponseWriter, r *http.Request) {
+	var temp jsonTemp
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &temp)
+
+	var resultado jsonDinero
+	//currentTime.Format("02/01/2006")
+	err = db.QueryRow("select sum(temporal) from( select (select precio from membresia where membresia.id_membresia = registro_membresia.id_membresia) as temporal from registro_membresia where id_temporada = (select id_temporada from temporada where nombre = '" + temp.Name + "'))").Scan(&resultado.Cantidad)
+
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func getGold(w http.ResponseWriter, r *http.Request) {
+	var temp jsonTemp
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &temp)
+
+	var resultado jsonDinero
+	//currentTime.Format("02/01/2006")
+	err = db.QueryRow("select count(*) from registro_membresia where id_temporada =  (select id_temporada from temporada where nombre = '" + temp.Name + "') and id_membresia = (select id_membresia from membresia where nombre = 'gold')").Scan(&resultado.Cantidad)
+
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func getSilver(w http.ResponseWriter, r *http.Request) {
+	var temp jsonTemp
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &temp)
+
+	var resultado jsonDinero
+	//currentTime.Format("02/01/2006")
+	err = db.QueryRow("select count(*) from registro_membresia where id_temporada =  (select id_temporada from temporada where nombre = '" + temp.Name + "') and id_membresia = (select id_membresia from membresia where nombre = 'silver')").Scan(&resultado.Cantidad)
+
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func getBronze(w http.ResponseWriter, r *http.Request) {
+	var temp jsonTemp
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &temp)
+
+	var resultado jsonDinero
+	//currentTime.Format("02/01/2006")
+	err = db.QueryRow("select count(*) from registro_membresia where id_temporada =  (select id_temporada from temporada where nombre = '" + temp.Name + "') and id_membresia = (select id_membresia from membresia where nombre = 'bronze')").Scan(&resultado.Cantidad)
+
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func getTA(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+	var resultado jsonTempo
+	//currentTime.Format("02/01/2006")
+	err = db.QueryRow("select nombre from temporada where actual = 1").Scan(&resultado.Name)
+
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	fmt.Println(resultado)
+	json.NewEncoder(w).Encode(resultado)
+
+}
+
+func getColores(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	//currentTime.Format("02/01/2006")
+
+	rows, err := db.Query("select id_color,color from colores")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var resultado []jsonColor
+	for rows.Next() {
+
+		var color jsonColor
+		rows.Scan(&color.ID, &color.Color)
+		resultado = append(resultado, color)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+
+}
+
+func createSport(w http.ResponseWriter, r *http.Request) {
+	var temp jsonDeporte
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &temp)
+
+	dec, ero := base64.StdEncoding.DecodeString(temp.Foto)
+	if ero != nil {
+		panic(ero)
+	}
+	f, err := os.Create("deportes/" + temp.Nombre + ".jpeg")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		panic(err)
+	}
+	if err := f.Sync(); err != nil {
+		panic(err)
+	}
+
+	//currentTime.Format("02/01/2006")
+	//rows, err := db.Query("select to_char(sysdate, 'HH24:MI:SS') from dual")
+	//rows, err := db.Query("insert into usuario(username,nombre,apellido,fecha_nacimiento,fecha_registro,correo,foto_perfil,contrasena) values ()")
+
+	rows, err := db.Query("BEGIN ingreso_deporte('" + temp.Nombre + "','" + temp.Color + "','deportes/" + temp.Nombre + ".jpeg'); END;")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	/*	for rows.Next() {
+
+		var nombre string
+
+		rows.Scan(&nombre)
+		fmt.Println(nombre)
+	}*/
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(temp)
+}
+
+func getDeportes(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	//currentTime.Format("02/01/2006")
+
+	rows, err := db.Query("select id_deporte,nombre from deporte")
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var resultado []jsonTempo
+	for rows.Next() {
+
+		var color jsonTempo
+		rows.Scan(&color.ID, &color.Name)
+		resultado = append(resultado, color)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+
+}
+func deleteDeporte(w http.ResponseWriter, r *http.Request) {
+	var newUser idSport
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+
+	//currentTime.Format("02/01/2006")
+	fmt.Println(newUser)
+
+	rows, err := db.Query("delete from deporte where id_deporte =" + strconv.Itoa(newUser.ID))
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var resultado []jsonTempo
+	for rows.Next() {
+
+		var color jsonTempo
+		rows.Scan(&color.ID, &color.Name)
+		resultado = append(resultado, color)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+
+}
+
 func main() {
 	var err error
 	db, err = sql.Open("godror", "ADMIN/1234@172.17.0.2:1521/ORCL18")
@@ -890,6 +1328,19 @@ func main() {
 	router.HandleFunc("/cargaEQ", ingresoEQ).Methods("POST")
 	router.HandleFunc("/cargaPAR", ingresoPAR).Methods("POST")
 	router.HandleFunc("/cargaPRE", ingresoPRE).Methods("POST")
+	router.HandleFunc("/carga_puntos", cargar_puntos).Methods("POST")
+	router.HandleFunc("/carga_recompensa", cargar_recompensas).Methods("POST")
+	//modulo de administrador
+	router.HandleFunc("/dinero_juego", getDinero).Methods("POST")
+	router.HandleFunc("/numero_gold", getGold).Methods("POST")
+	router.HandleFunc("/numero_silver", getSilver).Methods("POST")
+	router.HandleFunc("/numero_bronze", getBronze).Methods("POST")
+	router.HandleFunc("/temporada_actual", getTA).Methods("POST")
+	router.HandleFunc("/colores", getColores).Methods("POST")
+	router.HandleFunc("/crearDeporte", createSport).Methods("POST")
+
+	router.HandleFunc("/deportes", getDeportes).Methods("POST")
+	router.HandleFunc("/borraDeporte", deleteDeporte).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

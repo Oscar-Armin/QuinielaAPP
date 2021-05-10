@@ -1,0 +1,96 @@
+.circuloR {
+	width: 30rem;
+	height: 30rem;
+	border-radius: 50%;
+	background: red;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  margin:0px auto;
+  padding:3%
+}
+
+.circuloR > h2 {
+	font-family: sans-serif;
+	color: white;
+	font-size: 1.4rem;
+	font-weight: bold;
+}
+
+.circuloB {
+	width: 10rem;
+	height: 10rem;
+	border-radius: 50%;
+	background: rgb(119, 82, 13);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  margin:0px auto;
+  padding:3%
+}
+
+.circuloB > h2 {
+	font-family: sans-serif;
+	color: white;
+	font-size: 1.4rem;
+	font-weight: bold;
+}
+
+.circuloG {
+	width: 10rem;
+	height: 10rem;
+	border-radius: 50%;
+	background: rgb(238, 200, 30);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  margin:0px auto;
+  padding:3%
+}
+
+.circuloG > h2 {
+	font-family: sans-serif;
+	color: white;
+	font-size: 1.4rem;
+	font-weight: bold;
+}
+
+.circuloS {
+	width: 10rem;
+	height: 10rem;
+	border-radius: 50%;
+	background: rgb(175, 169, 164);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  margin:0px auto;
+  padding:3%
+}
+
+.circuloS > h2 {
+	font-family: sans-serif;
+	color: rgb(10, 10, 10);
+	font-size: 1.4rem;
+	font-weight: bold;
+}
+
+div{
+	border-radius: 5px;
+}
+.contenedor{
+	background-color:#CCC;
+	width:100%;
+	height:100px;
+display:flex;
+justify-content: space-between;
+}
+.contenido{
+	height:80px;
+	width:10%;
+	float:left;
+	margin: 10px;
+}
