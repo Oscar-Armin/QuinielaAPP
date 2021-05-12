@@ -941,6 +941,79 @@ type jsonDeporte struct {
 	Color  string `json:"color"`
 	Foto   string `json:"foto"`
 }
+type jsonRecoAdmin struct {
+	Username   string  `json:"username"`
+	Nombre     string  `json:"nombre"`
+	Apellido   string  `json:"apellido"`
+	Membresia  string  `json:"membresia"`
+	Total      float32 `json:"total"`
+	Ultimo     float32 `json:"ultimo"`
+	Incremento float32 `json:"incremento"`
+	Puesto     string  `json:"puesto"`
+}
+
+type jsonPuntAdmin struct {
+	Puesto   int    `json:"puesto"`
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Nombre   string `json:"nombre"`
+	Apellido string `json:"apellido"`
+	P0       int    `json:"p0"`
+	P3       int    `json:"p3"`
+	P5       int    `json:"p5"`
+	P10      int    `json:"p10"`
+	Puntos   int    `json:"puntos"`
+}
+
+type jsonUPred struct {
+	Deporte    string `json:"deporte"`
+	Local      string `json:"local"`
+	Visitante  string `json:"visitante"`
+	Plocal     int    `json:"plocal"`
+	Pvisitante int    `json:"pvisitante"`
+	Rlocal     int    `json:"rlocal"`
+	Rvisitante int    `json:"rvisitante"`
+	Puntos     int    `json:"puntos"`
+	Fecha      string `json:"fecha"`
+}
+
+type json2ID struct {
+	Id_user int `json:"id_user"`
+	Id_temp int `json:"id_temp"`
+}
+type jsonCalendario struct {
+	Id              int     `json:"id"`
+	Title           string  `json:"title"`
+	Start           string  `json:"start"`
+	BackgroundColor string  `json:"backgroundColor"`
+	Extended        jsonAdd `json:"extendedProps"`
+}
+
+type jsonAdd struct {
+	ResultadoL int    `json:"resultadoL"`
+	ResultadoV int    `json:"resultadoV"`
+	Prediccion int    `json:"prediccion"`
+	Deporte    string `json:"deporte"`
+}
+
+type jsonResultados struct {
+	ID         int `json:"id"`
+	ResultadoL int `json:"resultadol"`
+	ResultadoV int `json:"Resultadov"`
+}
+
+/*id: "", //id_partido
+title: 'J1vsJ2', //local vs visitante
+start: '2021-05-11T11:25:00', //fecha y hora
+
+backgroundColor:"red",// color deporte
+extendedProps: {
+
+	resultadoL:0,
+	resultadoV:0,
+	prediccion: 0 //si o no
+},
+description: 'Lecture'*/
 
 type idSport struct {
 	ID int `json:"id"`
@@ -1253,8 +1326,8 @@ func getDeportes(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(resultado)
-
 }
+
 func deleteDeporte(w http.ResponseWriter, r *http.Request) {
 	var newUser idSport
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -1297,6 +1370,551 @@ func deleteDeporte(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(resultado)
+}
+
+func AgetReco(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var consulta = "select " +
+		"(select username from usuario where id_usuario = recompensa.id_usuario) as Username," +
+		"(select nombre from usuario where id_usuario = recompensa.id_usuario) as Nombre," +
+		"(select apellido from usuario where id_usuario = recompensa.id_usuario) as Apellido, " +
+		"(select tiers from  (select (select nombre from membresia where id_membresia = registro_membresia.id_membresia) as tiers,(select nombre from temporada where id_temporada = registro_membresia.id_temporada)  as nt from registro_membresia where id_usuario=recompensa.id_usuario order by nt desc) where rownum = 1) as Membresia," +
+		"getTotal(recompensa.id_usuario) as Total, " +
+		"getUltimo(recompensa.id_usuario) as ultimo," +
+		"((getUltimo(recompensa.id_usuario)*100 )/getTotal(recompensa.id_usuario)) as incremento," +
+		"getPuesto(getTotal(recompensa.id_usuario)) as Puesto " +
+		"from recompensa group by id_usuario order by Total DESC"
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var resultado []jsonRecoAdmin
+	for rows.Next() {
+
+		var j jsonRecoAdmin
+		rows.Scan(&j.Username, &j.Nombre, &j.Apellido, &j.Membresia, &j.Total, &j.Ultimo, &j.Incremento, &j.Puesto)
+
+		resultado = append(resultado, j)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func Agetpuntaje(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var consulta = "select " +
+		"puesto_puntaje(puntos) as puesto," +
+		"id_usuario," +
+		"(select username from usuario where id_usuario = puntaje.id_usuario) as Username," +
+		"(select nombre from usuario where id_usuario = puntaje.id_usuario) as Nombre," +
+		"(select apellido from usuario where id_usuario = puntaje.id_usuario) as Apellido," +
+		"p0,p3,p5,p10 ,puntos from puntaje where puesto_puntaje(puntos)!=0 and id_temporada = (select id_temporada  from temporada where actual = 2) order by puntos desc "
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var resultado []jsonPuntAdmin
+	for rows.Next() {
+
+		var j jsonPuntAdmin
+		rows.Scan(&j.Puesto, &j.Id, &j.Username, &j.Nombre, &j.Apellido, &j.P0, &j.P3, &j.P5, &j.P10, &j.Puntos)
+
+		resultado = append(resultado, j)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func AUPred(w http.ResponseWriter, r *http.Request) {
+	var newUser json2ID
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+	//currentTime.Format("02/01/2006")
+	var consulta = "select" +
+		"(select (select nombre from deporte where id_deporte = partido.id_deporte) from partido where id_partido = prediccion.id_partido) as deporte," +
+		"(select (select nombre from equipo where id_equipo = partido.equipo_local) from partido where id_partido = prediccion.id_partido) as E_local," +
+		"(select (select nombre from equipo where id_equipo = partido.equipo_visitante) from partido where id_partido = prediccion.id_partido) as Visitante," +
+		"prediccion.puntos_local as pre_local," +
+		"prediccion.puntos_visitante as pre_visitante," +
+		"(select puntos_local from partido where id_partido = prediccion.id_partido) as res_local," +
+		"(select puntos_visitante from partido where id_partido = prediccion.id_partido) as res_visitante," +
+		"puntos," +
+		"(select fecha_partido from partido where id_partido = prediccion.id_partido) as Fecha " +
+		" from prediccion where id_usuario = " + strconv.Itoa(newUser.Id_user) + " and id_partido in (select id_partido  from partido where id_jornada in (select id_jornada from jornada where id_temporada = " + strconv.Itoa(newUser.Id_temp) + "))"
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var resultado []jsonUPred
+	for rows.Next() {
+
+		var j jsonUPred
+		rows.Scan(&j.Deporte, &j.Local, &j.Visitante, &j.Plocal, &j.Pvisitante, &j.Rlocal, &j.Rvisitante, &j.Puntos, &j.Fecha)
+
+		resultado = append(resultado, j)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	fmt.Println(resultado)
+	json.NewEncoder(w).Encode(resultado)
+
+}
+
+func getName(w http.ResponseWriter, r *http.Request) {
+	var newUser simpleID
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid User Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//fmt.Println(newUser)
+
+	//currentTime.Format("02/01/2006")
+	rows, err := db.Query("select username from usuario where id_usuario = '" + strconv.Itoa(newUser.ID) + "'")
+
+	if err != nil {
+		fmt.Println("Error running query")
+		//fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var resultado ingresoD
+	//fmt.Println(reflect.TypeOf(rows))
+	//var resultado usuario
+	for rows.Next() {
+
+		rows.Scan(&resultado.Nombre)
+
+	}
+
+	/**/ //convierto imagen a base64
+
+	// Print the full base64 representation of the image
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func getTemps(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var consulta = "select id_temporada,nombre from temporada"
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var resultado []id_correo
+	for rows.Next() {
+
+		var j id_correo
+		rows.Scan(&j.ID, &j.Correo)
+
+		resultado = append(resultado, j)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+
+}
+func endTemp(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var consulta = "BEGIN terminar_temporada; END;"
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func get_mensaje(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+
+	var resultado jsonVacio
+	err = db.QueryRow("select * from mensaje").Scan(&resultado.Mensaje)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func get_deportes(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var consulta = "select " +
+		"id_partido," +
+		"(select nombre from equipo where id_equipo=equipo_local) as E_local," +
+		"(select nombre from equipo where id_equipo=equipo_visitante)as E_visitante," +
+		"partido.fecha_partido as Fecha," +
+
+		"(select color from deporte where id_deporte=partido.id_deporte)as color," +
+
+		"(select nombre from deporte where id_deporte=partido.id_deporte)as deporte," +
+		"partido.puntos_local as resultadoL," +
+		"partido.puntos_visitante as resultadoV," +
+		"tiene_predic(id_partido) as prediccion " +
+
+		" from partido " +
+		" where id_jornada in (select id_jornada from jornada where id_temporada =(select id_temporada from temporada where actual =1) order by jornada.numero_jornada desc FETCH NEXT 1 ROWS ONLY   )"
+
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var resultado []jsonCalendario
+	for rows.Next() {
+		var local string
+		var visitante string
+		var j jsonCalendario
+		rows.Scan(&j.Id, &local, &visitante, &j.Start, &j.BackgroundColor, &j.Extended.Deporte, &j.Extended.ResultadoL, &j.Extended.ResultadoV, &j.Extended.Prediccion)
+		j.Title = local + " vs " + visitante
+
+		resultado = append(resultado, j)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+}
+func get_estadoUJ(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+
+	//currentTime.Format("02/01/2006")
+	var resultado simpleID
+	err = db.QueryRow("select id_fase from jornada where id_temporada = (select id_temporada from temporada where actual =1) order by numero_jornada desc FETCH NEXT 1 ROWS ONLY  ").Scan(&resultado.ID)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(resultado)
+}
+
+func set_fase2(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	var consulta = "update jornada set id_fase = 2 where id_jornada =" +
+		"(select id_jornada from jornada where id_temporada = (select id_temporada from temporada where actual = 1) order by numero_jornada desc  FETCH NEXT 1 ROWS ONLY)"
+	//currentTime.Format("02/01/2006")
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newUser)
+
+}
+func set_fase3(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	var consulta = "update jornada set id_fase = 3 where id_jornada =" +
+		"(select id_jornada from jornada where id_temporada = (select id_temporada from temporada where actual = 1) order by numero_jornada desc  FETCH NEXT 1 ROWS ONLY)"
+	//currentTime.Format("02/01/2006")
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newUser)
+
+}
+
+func end_jornada(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonVacio
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	var consulta = "BEGIN terminar_jornada; END;"
+	//currentTime.Format("02/01/2006")
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newUser)
+
+}
+
+func set_res(w http.ResponseWriter, r *http.Request) {
+	var newUser jsonResultados
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization") // You can add more headers here if needed
+	} else {
+		// Your code goes here
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid  Data")
+	}
+
+	json.Unmarshal(reqBody, &newUser)
+	fmt.Println(newUser)
+	var consulta = "Update partido set puntos_local =" + strconv.Itoa(newUser.ResultadoL) + " , puntos_visitante = " + strconv.Itoa(newUser.ResultadoV) + " where id_partido = " + strconv.Itoa(newUser.ID)
+	//currentTime.Format("02/01/2006")
+	fmt.Println(consulta)
+	rows, err := db.Query(consulta)
+	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newUser)
 
 }
 
@@ -1341,6 +1959,21 @@ func main() {
 
 	router.HandleFunc("/deportes", getDeportes).Methods("POST")
 	router.HandleFunc("/borraDeporte", deleteDeporte).Methods("POST")
+	router.HandleFunc("/Arecompensas", AgetReco).Methods("POST")
+	router.HandleFunc("/Apuntaje", Agetpuntaje).Methods("POST")
+
+	router.HandleFunc("/AUPred", AUPred).Methods("POST")
+
+	router.HandleFunc("/name_user", getName).Methods("POST")
+	router.HandleFunc("/obtener_temporadas", getTemps).Methods("POST")
+	router.HandleFunc("/end_season", endTemp).Methods("POST")
+	router.HandleFunc("/mensaje", get_mensaje).Methods("POST")
+	router.HandleFunc("/partido_ja", get_deportes).Methods("POST")
+	router.HandleFunc("/estado_fase", get_estadoUJ).Methods("POST")
+	router.HandleFunc("/fase2", set_fase2).Methods("POST")
+	router.HandleFunc("/fase3", set_fase3).Methods("POST")
+	router.HandleFunc("/end_jornada", end_jornada).Methods("POST")
+	router.HandleFunc("/set_res", set_res).Methods("POST")
 
 	fmt.Println("En puerto 3080")
 	handler := cors.Default().Handler(router)

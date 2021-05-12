@@ -13,6 +13,9 @@ import Reset from './Reset';
 import Cargar from './Cargar';
 import TemporadaAdmin from './TemporadaAdmin';
 import ADeportes from './ADeportes';
+import ARecompensa from './ARecompensa';
+import AUserPred from './AUserPred';
+import AJornadas from './AJornadas';
 
 const Main = ()=>{
     return(
@@ -30,6 +33,10 @@ const Main = ()=>{
             <Route path="/carga" component={ () => <Cargar  /> }  />
             <Route path="/temporadas_admin" component={ () => <TemporadaAdmin  /> }  />
             <Route path="/Adeportes" component={ () => <ADeportes  /> }  />
+            <Route path="/ARecompensa" component={ () => <ARecompensa  /> }  />
+            <Route path="/UserPred/:id" component={ () => <AUserPred  /> }  />
+            <Route path="/AJornadas" component={ () => <AJornadas  /> }  />
+
             
             
             <Redirect to="/home" />

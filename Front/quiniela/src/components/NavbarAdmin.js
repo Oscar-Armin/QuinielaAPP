@@ -34,7 +34,7 @@ function Navbar_user() {
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                        <a className="nav-link active" aria-current="page" href="/home">Jornadas</a>
+                        <a className="nav-link active" aria-current="page" href="/AJornadas">Jornadas</a>
                     </li>
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -44,7 +44,7 @@ function Navbar_user() {
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                     <li className="nav-item">
-                        <a className="nav-link active" aria-current="page" href="/home">Recompensas </a>
+                        <a className="nav-link active" aria-current="page" href="/ARecompensa">Recompensas </a>
                     </li>
                 </ul>
                 <ul className="navbar-nav me-auto mb-2 mb-lg-0">

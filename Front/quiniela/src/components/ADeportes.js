@@ -4,6 +4,7 @@ import NavbarAdmin from './NavbarAdmin';
 import { obtener__colores ,obtener_deportes,registro_deporte,deleteDeporte } from "../api/api-admin";
 import { useHistory } from 'react-router-dom';
 
+
 import Swal from "sweetalert2";
   
 
@@ -45,7 +46,7 @@ function Admin_deportes() {
       }
     let handleSportChange = (e) => {
       setSport(e.target.value)
-      console.log(sport)
+      
       }
 
     
@@ -157,9 +158,9 @@ function Admin_deportes() {
                       </label>
                       <br></br>
                         <select onChange={handleFruitChange}>
-                            <option value="⬇️ Select a color ⬇️">---Select a color---</option>
+                            <option value="⬇️ Select a color ⬇️" >---Select a color---</option>
                             {entrada.arreglo.map((option) => (
-                            <option value={option.color}>{option.color}</option>
+                            <option value={option.color}  style={{background:option.color }}>{option.color}</option>
                           ))}
                         </select>
                     </div>
